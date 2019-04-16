@@ -42,6 +42,7 @@ class Form extends React.Component {
     // Check required fields
     let vaildate = true;
     let errorMessage = this.state.error;
+    // if a required field is not filled them pass an error message to state.error
     if (this.state.error) {
       for (var key in this.state.error) {
         if (this.state[key] === "" && this.state.required[key]) {
@@ -61,6 +62,7 @@ class Form extends React.Component {
     // Check fields' rules
     let vaildate = true;
     let errorMessage = this.state.error;
+    // if rule check failed, then pass an error message to state.error
     if (this.state.bounds) {
       for (var item in this.state.bounds) {
         if (this.state[item] && this.state.bounds[item].upperLimit) {
@@ -90,7 +92,9 @@ class Form extends React.Component {
 
   handleFormOnSubmit = event => {
     event.preventDefault();
+    // disable submit button
     this.setState({ submitting: true });
+    //  vaildate data
     if (this.vaildateRequiredFields() && this.vaildateFieldRules()) {
       this.setState({
         submitting: false,
@@ -118,7 +122,7 @@ class Form extends React.Component {
 
   requiredLabel = key => {
     return this.state.required[key] ? (
-      <text className="form-required-label">*</text>
+      <label className="form-required-label">*</label>
     ) : null;
   };
 
