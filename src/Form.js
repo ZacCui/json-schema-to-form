@@ -30,6 +30,16 @@ class Form extends React.Component {
           error[element.id] = "";
           bounds[element.id] = element.bounds;
         }
+
+        // store default value
+        if (element.options) {
+          for (let key in element.options) {
+            if (element.options[key].isDefault) {
+              object[element.id] = element.options[key].id;
+              break;
+            }
+          }
+        }
       });
       object["error"] = error;
       object["bounds"] = bounds;
@@ -44,7 +54,7 @@ class Form extends React.Component {
     let errorMessage = this.state.error;
     // if a required field is not filled them pass an error message to state.error
     if (this.state.error) {
-      for (var key in this.state.error) {
+      for (let key in this.state.error) {
         if (this.state[key] === "" && this.state.required[key]) {
           if (vaildate) vaildate = false;
           errorMessage[key] = `${key} is required. `;
@@ -64,7 +74,7 @@ class Form extends React.Component {
     let errorMessage = this.state.error;
     // if rule check failed, then pass an error message to state.error
     if (this.state.bounds) {
-      for (var item in this.state.bounds) {
+      for (let item in this.state.bounds) {
         if (this.state[item] && this.state.bounds[item].upperLimit) {
           if (
             parseFloat(this.state[item]) > this.state.bounds[item].upperLimit
@@ -113,13 +123,17 @@ class Form extends React.Component {
     event.preventDefault();
     // disable submit button
     this.setState({ submitting: true });
-    //  vaildate data
+    // vaildate data
     if (this.vaildateRequiredFields() && this.vaildateFieldRules()) {
       this.setState({
         submitting: false,
         success: true
       });
-      // Send data back here
+      const data = {};
+      this.props.dataElements.forEach(e => {
+        data[e.id] = this.state[e.id];
+      });
+      // send data to back end here
     } else {
       this.setState({
         submitting: false,
@@ -196,11 +210,7 @@ class Form extends React.Component {
                         <label htmlFor={option.name}>{option.name}</label>
                         <input
                           value={option.id}
-                          checked={
-                            this.state[data.id]
-                              ? option.id === +this.state[data.id]
-                              : option.isDefault
-                          }
+                          checked={option.id === +this.state[data.id]}
                           placehoder={data.id}
                           name={option.name}
                           type={type}
