@@ -47,7 +47,7 @@ class Form extends React.Component {
       for (var key in this.state.error) {
         if (this.state[key] === "" && this.state.required[key]) {
           if (vaildate) vaildate = false;
-          errorMessage[key] = `${key} is required.`;
+          errorMessage[key] = `${key} is required. `;
         } else {
           errorMessage[key] = "";
         }
@@ -72,7 +72,7 @@ class Form extends React.Component {
             if (vaildate) vaildate = false;
             errorMessage[item] = `Invaild ${item} as the upperlimit is ${
               this.state.bounds[item].upperLimit
-            }.`;
+            }. `;
           } else {
             errorMessage[item] = "";
           }
@@ -81,6 +81,25 @@ class Form extends React.Component {
       this.setState({ error: errorMessage });
     }
     return vaildate;
+  };
+
+  calculateBmi = () => {
+    if (this.state.height && this.state.weight) {
+      this.setState(
+        {
+          bmi: (+this.state.weight / Math.pow(+this.state.height / 100, 2))
+            .toFixed(1)
+            .toString()
+        },
+        () => {
+          this.vaildateRequiredFields() && this.vaildateFieldRules();
+        }
+      );
+    }
+  };
+
+  handleOnBlur = () => {
+    this.calculateBmi();
   };
 
   handleFieldOnChange = event => {
@@ -100,6 +119,7 @@ class Form extends React.Component {
         submitting: false,
         success: true
       });
+      // Send data back here
     } else {
       this.setState({
         submitting: false,
@@ -114,9 +134,11 @@ class Form extends React.Component {
     ) : null;
   };
 
-  errorMessage = key => {
+  errorMessage = (key, message) => {
     return this.state.error[key] ? (
-      <div className="form-error-message">{this.state.error[key]}</div>
+      <div className="form-error-message">
+        {this.state.error[key]} {message}
+      </div>
     ) : null;
   };
 
@@ -133,16 +155,38 @@ class Form extends React.Component {
           {this.successMessage()}
           <h3 className="form-title">{this.state.observationName}</h3>
           {_.map(this.props.dataElements, data => {
-            if (!data.display) return;
+            // if display is false
+            if (!data.display) {
+              // special message to explian special field (eg. bmi)
+              let specialMessage = "";
+              if (data.id === "bmi") {
+                specialMessage = `(bmi = Weight(kg) / Height(m)^2 )`;
+              }
+              // if the rules check failed for a hidden field, then display the
+              // error message back to user
+              if (data.bounds) {
+                return (
+                  <div key={data.id} className="form-label">
+                    {this.errorMessage(
+                      data.id,
+                      `Current ${data.id} is ${this.state[data.id]}` +
+                        specialMessage
+                    )}
+                  </div>
+                );
+              }
+              return;
+            }
             const type =
               data.type === "select"
                 ? "radio"
                 : data.type.replace(/input/gi, "");
+            // case: input type = 'radio'
             if (type === "radio" && data.options) {
               return (
                 <div key={data.id} className="form-radio">
                   <label htmlFor={data.id} className="form-label">
-                    {data.displayName}{" "}
+                    {data.displayName}
                     {data.unitOfMeasure ? ` (${data.unitOfMeasure})` : null}
                     {this.requiredLabel(data.id)}
                   </label>
@@ -168,6 +212,7 @@ class Form extends React.Component {
                   {this.errorMessage(data.id)}
                 </div>
               );
+              // case: normal input field
             } else {
               return (
                 <div key={data.id} className="form-input">
@@ -181,6 +226,7 @@ class Form extends React.Component {
                     placehoder={data.id}
                     type={type}
                     onChange={this.handleFieldOnChange}
+                    onBlur={this.handleOnBlur}
                   />
                   {this.errorMessage(data.id)}
                 </div>
