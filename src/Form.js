@@ -125,15 +125,16 @@ class Form extends React.Component {
     this.setState({ submitting: true });
     // vaildate data
     if (this.vaildateRequiredFields() && this.vaildateFieldRules()) {
-      this.setState({
-        submitting: false,
-        success: true
-      });
       const data = {};
       this.props.dataElements.forEach(e => {
         data[e.id] = this.state[e.id];
       });
       // send data to back end here
+      // if success then set success as true and display success message
+      this.setState({
+        submitting: false,
+        success: true
+      });
     } else {
       this.setState({
         submitting: false,
